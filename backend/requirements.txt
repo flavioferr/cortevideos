@@ -1,0 +1,13 @@
+anthropic>=2.3.0
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+python-dotenv>=1.0
+pydantic>=2.7
+yt-dlp>=2026.10.21
+imageio-ffmpeg>=0.5
+opencv-python-headless>=4.10,<5
+numpy>=1.26
+faster-whisper>=1.1
+librosa>=0.11
+soundfile>=0.12

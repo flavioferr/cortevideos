@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CorteVideos</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/" class="brand">corte<span>videos</span></a>
+    <span class="tag">cortes, legendas e edição pelo Claude</span>
+  </header>
+
+  <main id="app"></main>
+
+  <template id="tpl-home">
+    <section class="panel">
+      <h1>Transforme um vídeo longo em cortes verticais</h1>
+      <form id="new-job">
+        <div class="source">
+          <input name="url" type="url" placeholder="Cole um link do YouTube, Twitch, Kick…">
+          <span class="or">ou</span>
+          <label class="file-btn">
+            <input name="file" type="file" accept="video/*" hidden>
+            <span>Enviar arquivo</span>
+          </label>
+        </div>
+        <div class="grid">
+          <label>Quantidade de cortes
+            <input name="num_clips" type="number" min="1" max="15" value="5">
+          </label>
+          <label>Duração
+            <select name="clip_length">
+              <option value="curto">Curto (15–30s)</option>
+              <option value="medio" selected>Médio (30–55s)</option>
+              <option value="longo">Longo (60–90s)</option>
+            </select>
+          </label>
+          <label>Idioma
+            <select name="language">
+              <option value="">Detectar</option>
+              <option value="pt">Português</option>
+              <option value="en">Inglês</option>
+              <option value="es">Espanhol</option>
+            </select>
+          </label>
+          <label>Estilo da legenda
+            <select name="caption_preset">
+              <option value="classico">Clássico (amarelo)</option>
+              <option value="impacto">Impacto (pop verde)</option>
+              <option value="karaoke">Karaokê</option>
+              <option value="minimal">Minimalista</option>
+            </select>
+          </label>
+          <label>Enquadramento
+            <select name="layout">
+              <option value="face">Seguir rosto</option>
+              <option value="center">Centro</option>
+              <option value="blur">Vídeo inteiro + fundo desfocado</option>
+              <option value="gameplay">Gameplay em cima + webcam embaixo</option>
+            </select>
+          </label>
+          <label class="check">
+            <input name="remove_silences" type="checkbox" checked> Remover pausas
+          </label>
+          <label class="check">
+            <input name="add_music" type="checkbox" checked> Música de fundo
+          </label>
+        </div>
+        <label>Instruções para o Claude (opcional)
+          <textarea name="instructions" rows="2" placeholder="Ex.: foque nas dicas práticas de investimento, evite a parte do patrocínio"></textarea>
+        </label>
+        <button type="submit" class="primary">Gerar cortes</button>
+        <p class="form-error" hidden></p>
+      </form>
+    </section>
+    <section>
+      <h2>Projetos</h2>
+      <div id="jobs" class="jobs"></div>
+    </section>
+    <section>
+      <h2>Biblioteca de músicas</h2>
+      <div class="panel music-panel">
+        <form id="music-import" class="music-import">
+          <input name="url" type="url" placeholder="Link de uma playlist ou música do YouTube">
+          <button type="submit" class="primary">Importar</button>
+        </form>
+        <div class="music-state muted"></div>
+        <div class="bar music-bar" hidden><div></div></div>
+        <div id="tracks" class="tracks"></div>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-job">
+    <a href="#/" class="back">← voltar</a>
+    <section class="panel job-head">
+      <div>
+        <h1 class="job-title"></h1>
+        <p class="job-summary muted"></p>
+      </div>
+      <div class="progress-box">
+        <div class="stage"></div>
+        <div class="bar"><div></div></div>
+        <p class="job-error" hidden></p>
+      </div>
+    </section>
+    <div class="clips"></div>
+  </template>
+
+  <template id="tpl-clip">
+    <article class="clip">
+      <div class="player">
+        <video controls playsinline preload="metadata"></video>
+        <div class="render-state"></div>
+      </div>
+      <div class="clip-body">
+        <div class="clip-top">
+          <span class="score"></span>
+          <span class="duration muted"></span>
+        </div>
+        <h3 class="hook"></h3>
+        <p class="reason muted"></p>
+        <p class="music-line" hidden></p>
+        <details class="post">
+          <summary>Texto para postar</summary>
+          <p class="post-title"></p>
+          <p class="post-desc"></p>
+          <p class="post-tags muted"></p>
+          <button class="ghost copy">Copiar</button>
+        </details>
+        <div class="actions">
+          <button class="primary edit">Editar com Claude</button>
+          <a class="ghost download" download>Baixar</a>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <dialog id="editor">
+    <div class="editor">
+      <div class="editor-video">
+        <video controls playsinline></video>
+        <div class="render-state"></div>
+      </div>
+      <div class="editor-side">
+        <div class="editor-head">
+          <h3>Editar com Claude</h3>
+          <button class="ghost close">Fechar</button>
+        </div>
+        <div class="chat-log"></div>
+        <div class="suggestions">
+          <button>Legenda maior e em verde</button>
+          <button>Corte a primeira frase</button>
+          <button>Título-gancho mais provocativo</button>
+          <button>Use fundo desfocado</button>
+          <button>Troque a música por algo mais calmo</button>
+          <button>Abaixe a música</button>
+          <button>Uma palavra por vez com efeito pop</button>
+        </div>
+        <form class="chat-form">
+          <textarea rows="2" placeholder="Diga o que mudar… (Enter envia)"></textarea>
+          <button type="submit" class="primary">Enviar</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
